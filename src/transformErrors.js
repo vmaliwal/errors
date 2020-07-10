@@ -1,43 +1,41 @@
 function makeTransformErrors({ immutable }) {
-  return function transformErrors(errors) {
-    const out = immutable.Map(errors).reduce((map, value, key) => {
-      if (isObject(value)) return map.set(key, flattenSingleObj(value));
-      else return map.set(key, flattenComplexArray(value));
+  return function transformErrors(errors, ignoreTransforms) {
+    return immutable.Map(errors).reduce((map, value, key) => {
+      if (ignoreTransforms.length !== 0 && ignoreTransforms.indexOf(key) !== -1)
+        return map.set(key, value);
+      if (isObject(value)) return map.set(key, flattenObj(value).join(' '));
+      else return map.set(key, flattenComplexArray(value).join(' '));
     }, immutable.Map());
-
-    console.log(out.toJS());
 
     function flattenArray(array) {
       return array
         .reduce((set, value) => {
           return set.add(addDot(value));
         }, immutable.Set())
-        .join(' ');
+        .flatten();
     }
 
-    function flattenSingleObj(obj) {
+    function flattenObj(obj) {
       return Object.values(obj)
         .reduce((set, value) => {
-          return set.add(flattenArray(value));
+          return isObject(value)
+            ? set.add(flattenObj(value))
+            : set.add(flattenArray(value));
         }, immutable.Set())
-        .join(' ');
+        .flatten();
     }
 
     function flattenComplexArray(array) {
       return array
         .reduce((set, value) => {
-          if (isObject(value)) return set.add(flattenSingleObj(value));
-          return set.add(addDot(str));
+          if (isObject(value)) return set.add(flattenObj(value));
+          return set.add(addDot(value));
         }, immutable.Set())
-        .join(' ');
+        .flatten();
     }
 
     function addDot(str) {
       return `${str}.`;
-    }
-
-    function isEmptyObj(obj) {
-      return isObject(obj) && Object.keys(obj).length === 0;
     }
 
     function isObject(val) {
