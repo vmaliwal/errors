@@ -1,3 +1,6 @@
+/**
+ * This file is created for debugging purposes
+ */
 const Immutable = require('immutable');
 const makeTransformErrors = require('./transformErrors');
 
@@ -43,6 +46,5 @@ const errors = Immutable.fromJS({
 });
 
 const transformErrors = makeTransformErrors({ Immutable });
-console.log(transformErrors(errors, ['url', 'urls']).toJS());
 
-module.exports = makeTransformErrors({ Immutable })(errors, ['url', 'urls']);
+module.exports = console.log(transformErrors(errors, ['url', 'urls']).toJS());

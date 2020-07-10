@@ -7,6 +7,12 @@ function makeTransformErrors({ Immutable }) {
       else return map.set(key, flattenMap(value).join(' '));
     }, Immutable.Map());
 
+    /**
+     * Maintain structure of the tree and only flatten the List
+     * @param {Immutable.List | Immutable.Map} values
+     * @param {boolean} ifList
+     * @returns {Immutable.List | Immutable.Map}
+     */
     function ignoreFlatten(values, ifList) {
       return values.reduce(
         (reducer, value, key) => {
@@ -18,6 +24,11 @@ function makeTransformErrors({ Immutable }) {
       );
     }
 
+    /**
+     * Deep flattens a List & returns combined values in a set
+     * @param {Immutable.List} list
+     * @returns {Immutable.Set}
+     */
     function flattenList(list) {
       return list
         .reduce((set, value) => {
@@ -28,15 +39,25 @@ function makeTransformErrors({ Immutable }) {
         .flatten();
     }
 
+    /**
+     * Deep flattens a Map & returns combined values in a set
+     * @param {Immutable.Map} map
+     * @returns {Immutable.Set}
+     */
     function flattenMap(map) {
       return map
         .reduce((set, value) => {
-          if (isMap(value)) return set.add(flattenMap(value));
-          else return set.add(flattenList(value));
+          return isMap(value)
+            ? set.add(flattenMap(value))
+            : set.add(flattenList(value));
         }, Immutable.Set())
         .flatten();
     }
 
+    /**
+     * Adds a dot at the end of the string
+     * @param {String} str
+     */
     function addDot(str) {
       return `${str}.`;
     }
