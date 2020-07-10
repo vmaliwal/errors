@@ -1,7 +1,7 @@
-const immutable = require('immutable');
+const Immutable = require('immutable');
 const makeTransformErrors = require('./transformErrors');
 
-const errors = {
+const errors = Immutable.fromJS({
   name: ['This field is required'],
   age: ['This field is required', 'Only numeric characters are allowed'],
   urls: [
@@ -40,6 +40,9 @@ const errors = {
       non_field_errors: ['Only alphanumeric characters are allowed'],
     },
   },
-};
+});
 
-module.exports = makeTransformErrors({ immutable })(errors, ['url', 'urls']);
+const transformErrors = makeTransformErrors({ Immutable });
+console.log(transformErrors(errors, ['url', 'urls']).toJS());
+
+module.exports = makeTransformErrors({ Immutable })(errors, ['url', 'urls']);

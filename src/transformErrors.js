@@ -1,36 +1,39 @@
-function makeTransformErrors({ immutable }) {
+function makeTransformErrors({ Immutable }) {
   return function transformErrors(errors, ignoreTransforms) {
-    return immutable.Map(errors).reduce((map, value, key) => {
+    return errors.reduce((map, value, key) => {
       if (ignoreTransforms.length !== 0 && ignoreTransforms.indexOf(key) !== -1)
-        return map.set(key, value);
-      if (isObject(value)) return map.set(key, flattenObj(value).join(' '));
-      else return map.set(key, flattenComplexArray(value).join(' '));
-    }, immutable.Map());
+        return map.set(key, ignoreFlatten(value, isList(value)));
+      if (isList(value)) return map.set(key, flattenList(value).join(' '));
+      else return map.set(key, flattenMap(value).join(' '));
+    }, Immutable.Map());
 
-    function flattenArray(array) {
-      return array
+    function ignoreFlatten(values, ifList) {
+      return values.reduce(
+        (reducer, value, key) => {
+          return isList(value)
+            ? reducer.set(key, flattenList(value).join(' '))
+            : reducer.set(key, ignoreFlatten(value, isList(value)));
+        },
+        ifList ? Immutable.List() : Immutable.Map()
+      );
+    }
+
+    function flattenList(list) {
+      return list
         .reduce((set, value) => {
-          return set.add(addDot(value));
-        }, immutable.Set())
+          return isMap(value)
+            ? set.add(flattenMap(value))
+            : set.add(addDot(value));
+        }, Immutable.Set())
         .flatten();
     }
 
-    function flattenObj(obj) {
-      return Object.values(obj)
+    function flattenMap(map) {
+      return map
         .reduce((set, value) => {
-          return isObject(value)
-            ? set.add(flattenObj(value))
-            : set.add(flattenArray(value));
-        }, immutable.Set())
-        .flatten();
-    }
-
-    function flattenComplexArray(array) {
-      return array
-        .reduce((set, value) => {
-          if (isObject(value)) return set.add(flattenObj(value));
-          return set.add(addDot(value));
-        }, immutable.Set())
+          if (isMap(value)) return set.add(flattenMap(value));
+          else return set.add(flattenList(value));
+        }, Immutable.Set())
         .flatten();
     }
 
@@ -38,8 +41,12 @@ function makeTransformErrors({ immutable }) {
       return `${str}.`;
     }
 
-    function isObject(val) {
-      return val && typeof val === 'object' && !Array.isArray(val);
+    function isList(val) {
+      return Immutable.List.isList(val);
+    }
+
+    function isMap(val) {
+      return Immutable.Map.isMap(val);
     }
   };
 }

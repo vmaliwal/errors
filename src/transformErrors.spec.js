@@ -1,9 +1,7 @@
 const Immutable = require('immutable');
 const assert = require('assert');
-
-function transformErrors() {
-  return Immutable.Map();
-}
+const makeTransformErrors = require('./transformErrors');
+const transformErrors = makeTransformErrors({ Immutable });
 
 it('should tranform errors', () => {
   // example error object returned from API converted to Immutable.Map
@@ -51,7 +49,8 @@ it('should tranform errors', () => {
   // in this specific case,
   // errors for `url` and `urls` keys should be nested
   // see expected object below
-  const result = transformErrors();
+  const ignoreTransforms = [`url`, `urls`];
+  const result = transformErrors(errors, ignoreTransforms);
 
   assert.deepEqual(result.toJS(), {
     name: 'This field is required.',
