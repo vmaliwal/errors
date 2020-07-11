@@ -1,5 +1,8 @@
 function makeTransformErrors({ Immutable }) {
   return function transformErrors(errors, ignoreTransforms = []) {
+    if (Immutable === undefined)
+      throw new ReferenceError('Immutable is not defined.');
+
     return Immutable.Seq(errors).reduce((map, value, key) => {
       if (ignoreTransforms.length !== 0 && ignoreTransforms.indexOf(key) !== -1)
         return map.set(key, ignoreFlatten(value, isList(value)));
